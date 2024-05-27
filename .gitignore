@@ -1,0 +1,5 @@
+/.DS_Store
+/fake-news-project.code-workspace
+docker_image_files/lambda_function_local.old
+fnvenv
+docker_image_files/artifacts/model_optimized.onnx
