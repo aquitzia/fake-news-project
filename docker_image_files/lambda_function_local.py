@@ -1,19 +1,50 @@
 import os
 # import json
+import mlflow
 from optimum.onnxruntime import ORTModelForSequenceClassification
 from optimum.pipelines import pipeline
+
+os.environ[MLFLOW_TRACKING_URI]="http://ec2-54-193-78-218.us-west-1.compute.amazonaws.com:5000"
+# MLFLOW_SERVER="http://ec2-54-193-78-218.us-west-1.compute.amazonaws.com:5000"
+# run_name = "languid-dolphin-519"
+os.environ[MLFLOW_RUN_ID]="4f9a2ca283f141769647f773ae61c15a"
+# MLFLOW_RUN = "4f9a2ca283f141769647f773ae61c15a"
+print('MLflow Tracking URI:', MLFLOW_TRACKING_URI)
+# mlflow.set_tracking_uri(MLFLOW_SERVER)
+print('MLflow Run ID:', MLFLOW_RUN_ID)
+# Access run details
+run = mlflow.get_run(run_id)
 
 PREDICT_PATH = 'predict'    #this line is lambda-specific
 INFO_PATH = 'info'    #this line is lambda-specific
 MODEL_DIR = '/tmp/artifacts'    # use /tmp/ for large storage in a Lambda function
 
+def print_files(dir):
+    artifacts = os.listdir(dir)
+    # artifacts = [entry for entry in artifacts if os.path.isfile(os.path.join(MODEL_DIR, entry))]
+    print(artifacts)
+
 def predict(articles):
-    # Run inference with optimized ONNX model and ONNX RunTime pipeline:
-    # It only uses 3.3 GB CPU memory, and 480 MB space (for artifacts)
-    print(os.path.abspath(MODEL_DIR))
-    optimized_model = ORTModelForSequenceClassification.from_pretrained(os.path.abspath(MODEL_DIR))#, file_name="model_optimized.onnx", from_transformers=True)
-    ort_pipe = pipeline("text-classification", model=optimized_model, accelerator="ort")
-    return ort_pipe(articles)
+    print('Transformers cache dir:', os.getenv('TRANSFORMERS_CACHE')) # Will be deprecated
+    print('Huggingface home dir:', os.getenv('HF_HOME'))
+    print('Model dir:', os.path.abspath(MODEL_DIR))
+
+    run_name = run.data.tags.get('mlflow.runName')
+    metrics = run.data.metrics
+    print('Run name:', run_name)
+    print('MLflow artifact URI', os.environ[MLFLOW_ARTIFACT_URI])#mlflow.get_artifact_uri(run_id=MLFLOW_RUN)
+    print('Metrics:', metrics)
+
+    print_files('/tmp/')
+    print_files('/var/task/')
+    print_files(os.path.abspath(MODEL_DIR))
+
+    # # Run inference with optimized ONNX model and ONNX RunTime pipeline:
+    # # It only uses 3.3 GB CPU memory, and 480 MB space (for artifacts)
+    # optimized_model = ORTModelForSequenceClassification.from_pretrained(os.path.abspath(MODEL_DIR))#, file_name="model_optimized.onnx", from_transformers=True)
+    # ort_pipe = pipeline("text-classification", model=optimized_model, accelerator="ort")
+    # return ort_pipe(articles)
+    return 'Just checking!'
 
 def lambda_handler(event, context):
     action = event['Action']
