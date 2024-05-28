@@ -14,4 +14,4 @@ ENV TRANSFORMERS_CACHE=/tmp/hf_cache
 ENV HF_HOME=/tmp/hf_home
 
 # Use CMD to run the handler (could also be done as a parameter override outside of the Dockerfile)
-CMD [ "lambda_function_local.lambda_handler" ]
+CMD [ "lambda_function_APIGateway.lambda_handler" ]

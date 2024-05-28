@@ -1,6 +1,5 @@
 import os
 import mlflow
-import boto3
 from optimum.onnxruntime import ORTModelForSequenceClassification
 from optimum.pipelines import pipeline
 
