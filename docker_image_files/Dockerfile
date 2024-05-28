@@ -9,7 +9,7 @@ COPY requirements.txt  .
 RUN pip3 install --upgrade -r requirements.txt --target "${LAMBDA_TASK_ROOT}"
 
 # Copy function code. /var/task/ is read-only.
-COPY lambda_function_local.py ${LAMBDA_TASK_ROOT}
+COPY lambda_function_APIGateway.py ${LAMBDA_TASK_ROOT}
 ENV TRANSFORMERS_CACHE=/tmp/hf_cache
 ENV HF_HOME=/tmp/hf_home
 
