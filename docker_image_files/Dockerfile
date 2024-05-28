@@ -6,7 +6,7 @@ RUN python -m pip install --upgrade pip
 # ${LAMBDA_TASK_ROOT} is an environment variable set by AWS Lambda
 # to /var/task/, the default working directory.
 COPY requirements.txt  .
-RUN pip install --upgrade -r requirements.txt --target "${LAMBDA_TASK_ROOT}"
+RUN pip3 install --upgrade -r requirements.txt --target "${LAMBDA_TASK_ROOT}"
 
 # Copy model and tokenizer artifacts to a dir in the Lambda tmp
 COPY artifacts /tmp/artifacts
