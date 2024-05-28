@@ -3,3 +3,4 @@
 docker_image_files/lambda_function_local.old
 fnvenv
 docker_image_files/artifacts/model_optimized.onnx
+docker_image_files/.DS_Store

@@ -1,58 +1,52 @@
 import os
-# import json
 import mlflow
+import boto3
 from optimum.onnxruntime import ORTModelForSequenceClassification
 from optimum.pipelines import pipeline
 
-os.environ[MLFLOW_TRACKING_URI]="http://ec2-54-193-78-218.us-west-1.compute.amazonaws.com:5000"
-# MLFLOW_SERVER="http://ec2-54-193-78-218.us-west-1.compute.amazonaws.com:5000"
-# run_name = "languid-dolphin-519"
-os.environ[MLFLOW_RUN_ID]="4f9a2ca283f141769647f773ae61c15a"
-# MLFLOW_RUN = "4f9a2ca283f141769647f773ae61c15a"
-print('MLflow Tracking URI:', MLFLOW_TRACKING_URI)
-# mlflow.set_tracking_uri(MLFLOW_SERVER)
-print('MLflow Run ID:', MLFLOW_RUN_ID)
-# Access run details
-run = mlflow.get_run(run_id)
+# print('Transformers cache dir:', os.getenv('TRANSFORMERS_CACHE')) # Will be deprecated
+# print('Huggingface home dir:', os.getenv('HF_HOME'))
 
-PREDICT_PATH = 'predict'    #this line is lambda-specific
-INFO_PATH = 'info'    #this line is lambda-specific
-MODEL_DIR = '/tmp/artifacts'    # use /tmp/ for large storage in a Lambda function
+### MLflow information required for downloading artifacts:
+MLFLOW_SERVER="http://ec2-3-101-143-87.us-west-1.compute.amazonaws.com:5000"
+mlflow.set_tracking_uri(MLFLOW_SERVER)
+MLFLOW_RUN = "4f9a2ca283f141769647f773ae61c15a" # run_name = "languid-dolphin-519"
+MLFLOW_MODEL_PATH = 'huggingface_optimum_artifacts'
+LAMBDA_TMP = '/tmp/'    # use /tmp/ for downloading large (ephemeral) files in a Lambda function
 
-def print_files(dir):
-    artifacts = os.listdir(dir)
-    # artifacts = [entry for entry in artifacts if os.path.isfile(os.path.join(MODEL_DIR, entry))]
-    print(artifacts)
+PREDICT_PATH = 'predict'
+INFO_PATH = 'info'
 
 def predict(articles):
-    print('Transformers cache dir:', os.getenv('TRANSFORMERS_CACHE')) # Will be deprecated
-    print('Huggingface home dir:', os.getenv('HF_HOME'))
-    print('Model dir:', os.path.abspath(MODEL_DIR))
 
-    run_name = run.data.tags.get('mlflow.runName')
-    metrics = run.data.metrics
+    # Download model files from MLflow server (client)
+    print('MLflow Tracking URI:', mlflow.get_tracking_uri())
+    mlflow_files = mlflow.artifacts.download_artifacts(tracking_uri=MLFLOW_SERVER, run_id=MLFLOW_RUN, artifact_path=MLFLOW_MODEL_PATH, dst_path=LAMBDA_TMP)
+    print('Downloaded model files:\n', os.listdir(mlflow_files))
+    # mlflow_files=mlflow.artifacts.list_artifacts(tracking_uri=MLFLOW_SERVER, run_id=MLFLOW_RUN, artifact_path=MLFLOW_MODEL_PATH)
+
+    # Get MLflow model run info:
+    run = mlflow.get_run(MLFLOW_RUN)
+    print('MLflow Run ID:', run.info.run_id)
+    run_name = run.data.tags['mlflow.runName']
     print('Run name:', run_name)
-    print('MLflow artifact URI', os.environ[MLFLOW_ARTIFACT_URI])#mlflow.get_artifact_uri(run_id=MLFLOW_RUN)
-    print('Metrics:', metrics)
+    # tags = run.data.tags
+    # metrics = run.data.metrics
 
-    print_files('/tmp/')
-    print_files('/var/task/')
-    print_files(os.path.abspath(MODEL_DIR))
-
-    # # Run inference with optimized ONNX model and ONNX RunTime pipeline:
-    # # It only uses 3.3 GB CPU memory, and 480 MB space (for artifacts)
-    # optimized_model = ORTModelForSequenceClassification.from_pretrained(os.path.abspath(MODEL_DIR))#, file_name="model_optimized.onnx", from_transformers=True)
-    # ort_pipe = pipeline("text-classification", model=optimized_model, accelerator="ort")
-    # return ort_pipe(articles)
-    return 'Just checking!'
+    # Run inference with optimized ONNX model and ONNX RunTime pipeline:
+    # It only uses 3.3 GB CPU memory, and 480 MB space (for artifacts)
+    onnx_dir = os.path.join(LAMBDA_TMP, MLFLOW_MODEL_PATH)
+    optimized_model = ORTModelForSequenceClassification.from_pretrained(os.path.abspath(onnx_dir))#, file_name="model_optimized.onnx", from_transformers=True)
+    ort_pipe = pipeline("text-classification", model=optimized_model, accelerator="ort")
+    return ort_pipe(articles)
 
 def lambda_handler(event, context):
-    action = event['Action']
+    print(event)
+    action = event['Action'] # API Gateway uses different JSON
 
     if action == PREDICT_PATH:
-        text = event['Text']
-        results = predict(text)
-        print('Model output:', results)
+        articles = event['Text']
+        results = predict(articles)
         return results
 
     elif action == INFO_PATH:
