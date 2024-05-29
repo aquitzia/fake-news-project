@@ -14,7 +14,7 @@ st.write('Version 0.0.1')
 
 article = st.text_input("Paste a news article here.")
 
-if st.button('Predict'):
+if st.button('Detect'):
         if article == "":
             st.error("Please enter some text, then click Predict.")
 
