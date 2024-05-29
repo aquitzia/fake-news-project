@@ -12,7 +12,7 @@ API_URL = 'https://ud4rhytiik.execute-api.us-west-1.amazonaws.com/'
 st.title('Fake News Detector')
 st.write('Version 0.0.1')
 
-article = st.text_input("Paste a news article here.")
+article = st.text_area("Paste a news article here.*", height=200)
 
 if st.button('Detect'):
         if article == "":
@@ -23,13 +23,14 @@ if st.button('Detect'):
             # print(r.headers['Content-Type']) #application/json
             # print('headers:\n', r.headers) #{'Date': 'Wed, 29 May 2024 03:50:21 GMT', 'Content-Type': 'application/json', 'Content-Length': '48', 'Connection': 'keep-alive', 'Apigw-Requestid': 'Yg7eoiIWSK4EJ8Q='}
             # print(r.encoding) #utf-8
-            
+ 
             if r.status_code == 200:
                 pred = r.json()[0]
                 label = pred['label']
                 score = pred['score']
                 st.write('Label:', label)
                 st.write(f'Score: {score:14%}')
+                st.caption('*RoBERTa models have a maximum input size of 512 byte-pair encodings (bpe), which is about 300-400 words, so the tokenizer will truncate articles that are too long for the model. It also has a limited vocabulary size of 50,000 of the most common words. Most importantly, the model was trained on a training set of only 5,000 articles.')
             else:
                 st.write(f"Failed to trigger AWS Lambda function. Status code: {r.status_code}")
 
