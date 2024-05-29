@@ -20,9 +20,10 @@ if st.button('Test Prediction'):
         st.write(f"Failed to trigger AWS Lambda function. Status code: {response.status_code}")
 
 if st.button('Get model info'):
-    info = requests.get(API_URL+'info')
-
-    if response.status_code == 200:
-        st.write(response.content)
+    info = requests.post(API_URL+'info')
+    print(info)
+    
+    if info.status_code == 200:
+        st.write(info.content)
     else:
-        st.write(f"Failed to trigger AWS Lambda function. Status code: {response.status_code}")
+        st.write(f"Failed to trigger AWS Lambda function. Status code: {info.status_code}")
