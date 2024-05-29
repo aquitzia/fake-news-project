@@ -1,8 +1,10 @@
 ### **Fake News Detector**
 
-This is an end-to-end project, which is meant to demonstrate a working model using several ML Ops tools. This project was created by Angelita Garcia-Stonehocker, an ML Engineer who also has experience being a member of a board, teacher, and university lecturer. She has a degree in Computer Science from Stanford University.
-LinkedIn: 
-GitHub: 
+This is an end-to-end project, which is meant to demonstrate a popular NLP model using several ML Ops tools. This project was created by Angelita Garcia-Stonehocker, an ML Engineer who also has experience being a member of a board, teacher, and university lecturer. She has a degree in Computer Science from Stanford University.
+
+LinkedIn: https://www.linkedin.com/in/aqgarcia/
+
+GitHub: https://github.com/aquitzia
 
 **Model**
 I used a Pre-trained RoBERTa model, which uses byte-pair encodings (BPEs) on a masked-language modeling (MLM) objective. RoBERTa has a similar architecture to BERT, which is a powerful Natural Language Processing (NLP) transformer model. However, RoBERTa is more lightweight with similar results on measures of model performance.
