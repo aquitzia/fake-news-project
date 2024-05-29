@@ -5,10 +5,11 @@ on:
     branches:
       - main
 
+env:
+    AWS_REGION: us-west-1
 jobs:
-  deploy:
+  build:
     runs-on: ubuntu-latest
-
     steps:
     - name: Checkout code
       uses: actions/checkout@v2 # checkout the commit that triggered this action
