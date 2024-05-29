@@ -9,7 +9,8 @@ import json
 # {resource_path} the endpoint that triggers the Lambda function
 API_URL = 'https://ud4rhytiik.execute-api.us-west-1.amazonaws.com/'
 
-
+st.title('Fake News Detector')
+st.write('Version 0.0.1')
 
 article = st.text_input("Paste a news article here.")
 
@@ -36,6 +37,9 @@ if st.button('Get model info'):
     r = requests.post(API_URL+'info')
     
     if r.status_code == 200:
-        st.write(r.content.decode('utf-8'))
+        # st.write(r.content.decode('utf-8'))
+        with open("README.md", "r") as f:
+            mdf = f.read()
+        st.markdown(mdf)
     else:
         st.write(f"Failed to trigger AWS Lambda function. Status code: {r.status_code}")
