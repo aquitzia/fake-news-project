@@ -4,3 +4,4 @@ docker_image_files/lambda_function_local.old
 fnvenv
 docker_image_files/artifacts/model_optimized.onnx
 docker_image_files/.DS_Store
+/Users/angie/Documents/Bootcamp/5 ML Ops/14_mlops-main
