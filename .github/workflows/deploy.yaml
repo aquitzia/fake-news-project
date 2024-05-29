@@ -22,7 +22,7 @@ jobs:
         aws-region: us-west-1
 
     - name: Build Docker Image
-      run: docker build --platform linux/amd64 -t fake-news-docker .
+      run: docker build --platform linux/amd64 -t fake-news-docker docker_image_files
 
     # Below, we use the GitHub Action: aws-actions/amazon-ecr-login
     # This will get the 'registry' from output from the action: steps.login-ecr.outputs.registry
