@@ -19,7 +19,7 @@ jobs:
       with:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: us-west-1
+        aws-region: ${{ env.AWS_REGION }}
 
     - name: Login to Amazon ECR
       id: login-ecr
@@ -28,16 +28,13 @@ jobs:
     - name: Build Docker Image
       run: docker build --platform linux/amd64 -t fake-news-docker docker_image_files
 
-    # This will get the 'registry' from output from the action: steps.login-ecr
-    # The value of 'registry' is my ECR, which contains my account number, with the syntax: 123456789012.dkr.ecr.us-west-1.amazonaws.com
+    # This will get the 'registry' URI from output from the action: steps.login-ecr
+    # The ECR URI contains the account number, with the syntax: 123456789012.dkr.ecr.us-west-1.amazonaws.com
     - name: Tag Docker Images
       run: docker tag fake-news-docker:latest ${{ steps.login-ecr.outputs.registry }}/fake-news-model:latest
-      #docker tag fake-news-docker:latest 851725529671.dkr.ecr.us-west-1.amazonaws.com/fake-news-model:latest
 
     - name: Push Docker Image to ECR
       run: docker push ${{ steps.login-ecr.outputs.registry }}/fake-news-model:latest
-      #docker push 851725529671.dkr.ecr.us-west-1.amazonaws.com/fake-news-model:latest
 
     - name: Update Lambda Function
       run: aws lambda update-function-code --function-name predict-fake-news --region us-west-1 --image-uri ${{ steps.login-ecr.outputs.registry }}/fake-news-model:latest
-      #aws lambda update-function-code --function-name predict-fake-news --region us-west-1 --image-uri 851725529671.dkr.ecr.us-west-1.amazonaws.com/fake-news-model:latest
