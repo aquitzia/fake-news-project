@@ -3,6 +3,7 @@ import time
 
 ### For downloading artifacts
 import mlflow
+import boto3
 MLFLOW_SERVER="http://13.52.243.246:5000"
 mlflow.set_tracking_uri(MLFLOW_SERVER)
 MLFLOW_RUN = "4f9a2ca283f141769647f773ae61c15a" # run_name = "languid-dolphin-519"
@@ -18,7 +19,7 @@ def download_latest_model():
     # metrics = run.data.metrics
 
     start_time = time.monotonic()
-    mlflow_files = mlflow.artifacts.download_artifacts(tracking_uri=MLFLOW_SERVER, run_id=MLFLOW_RUN, artifact_path=MLFLOW_MODEL_PATH, dst_path=LAMBDA_TMP)
+    mlflow_files = mlflow.artifacts.download_artifacts(tracking_uri=MLFLOW_SERVER, run_id=MLFLOW_RUN, artifact_path=MLFLOW_MODEL_PATH, dst_path=EFS_ACCESS_POINT)
     downloaded_time = time.monotonic()
     print('Downloaded model files:\n', os.listdir(mlflow_files))
     print(f'Downloaded model in {(downloaded_time-start_time):.2f}s')

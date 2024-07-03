@@ -21,7 +21,7 @@ INFO_PATH = '/info'
 def predict(articles):
     # Run inference with optimized ONNX model and ONNX RunTime pipeline:
     # It uses 3.3 GB CPU memory, and 480 MB space (for artifacts)
-    onnx_dir = os.path.join(LAMBDA_TMP, MLFLOW_MODEL_PATH)
+    onnx_dir = os.path.join(EFS_ACCESS_POINT, MLFLOW_MODEL_PATH)
     optimized_model = ORTModelForSequenceClassification.from_pretrained(os.path.abspath(onnx_dir))#, file_name="model_optimized.onnx", from_transformers=True)
     ort_pipe = pipeline("text-classification", model=optimized_model, accelerator="ort")
     return ort_pipe(articles)
@@ -44,9 +44,3 @@ def lambda_handler(event, context):
 
     else:
         return "Please provide a valid parameter"
-
-    # Download model files from MLflow server (client)
-    print('MLflow Tracking URI:', mlflow.get_tracking_uri())
-    mlflow_files = mlflow.artifacts.download_artifacts(tracking_uri=MLFLOW_SERVER, run_id=MLFLOW_RUN, artifact_path=MLFLOW_MODEL_PATH, dst_path=LAMBDA_TMP)
-    print('Downloaded model files:\n', os.listdir(mlflow_files))
-    # mlflow_files=mlflow.artifacts.list_artifacts(tracking_uri=MLFLOW_SERVER, run_id=MLFLOW_RUN, artifact_path=MLFLOW_MODEL_PATH)
