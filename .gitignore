@@ -2,4 +2,4 @@ fnvenv
 /.DS_Store
 docker_image_files/.DS_Store
 /fake-news-project.code-workspace
-/Users/angie/Documents/Bootcamp/5 ML Ops/14_mlops-main
+.github/workflows/deploy copy.yaml

@@ -1,41 +1,26 @@
 import os
-import json
-import mlflow
-import boto3
+# import mlflow
+# import boto3
+
+# For inference
 from optimum.onnxruntime import ORTModelForSequenceClassification
 from optimum.pipelines import pipeline
+EFS_ACCESS_POINT = '/mnt/efs' # root directory is mounted here
+MLFLOW_MODEL_PATH = 'huggingface_optimum_artifacts'
+MODEL_PATH = '' # in EFS
 
 # print('Transformers cache dir:', os.getenv('TRANSFORMERS_CACHE')) # Will be deprecated
 # print('Huggingface home dir:', os.getenv('HF_HOME'))
 
-### MLflow information required for downloading artifacts:
-MLFLOW_SERVER="http://ec2-3-101-143-87.us-west-1.compute.amazonaws.com:5000"
-mlflow.set_tracking_uri(MLFLOW_SERVER)
-MLFLOW_RUN = "4f9a2ca283f141769647f773ae61c15a" # run_name = "languid-dolphin-519"
-MLFLOW_MODEL_PATH = 'huggingface_optimum_artifacts'
-LAMBDA_TMP = '/tmp/'    # use /tmp/ for downloading large (ephemeral) files in a Lambda function
-
+# For Lambda
+import json
+LAMBDA_TMP = '/tmp/'
 PREDICT_PATH = '/predict'
 INFO_PATH = '/info'
 
 def predict(articles):
-
-    # Download model files from MLflow server (client)
-    print('MLflow Tracking URI:', mlflow.get_tracking_uri())
-    mlflow_files = mlflow.artifacts.download_artifacts(tracking_uri=MLFLOW_SERVER, run_id=MLFLOW_RUN, artifact_path=MLFLOW_MODEL_PATH, dst_path=LAMBDA_TMP)
-    print('Downloaded model files:\n', os.listdir(mlflow_files))
-    # mlflow_files=mlflow.artifacts.list_artifacts(tracking_uri=MLFLOW_SERVER, run_id=MLFLOW_RUN, artifact_path=MLFLOW_MODEL_PATH)
-
-    # Get MLflow model run info:
-    run = mlflow.get_run(MLFLOW_RUN)
-    print('MLflow Run ID:', run.info.run_id)
-    run_name = run.data.tags['mlflow.runName']
-    print('Run name:', run_name)
-    # tags = run.data.tags
-    # metrics = run.data.metrics
-
     # Run inference with optimized ONNX model and ONNX RunTime pipeline:
-    # It only uses 3.3 GB CPU memory, and 480 MB space (for artifacts)
+    # It uses 3.3 GB CPU memory, and 480 MB space (for artifacts)
     onnx_dir = os.path.join(LAMBDA_TMP, MLFLOW_MODEL_PATH)
     optimized_model = ORTModelForSequenceClassification.from_pretrained(os.path.abspath(onnx_dir))#, file_name="model_optimized.onnx", from_transformers=True)
     ort_pipe = pipeline("text-classification", model=optimized_model, accelerator="ort")
@@ -59,3 +44,9 @@ def lambda_handler(event, context):
 
     else:
         return "Please provide a valid parameter"
+
+    # Download model files from MLflow server (client)
+    print('MLflow Tracking URI:', mlflow.get_tracking_uri())
+    mlflow_files = mlflow.artifacts.download_artifacts(tracking_uri=MLFLOW_SERVER, run_id=MLFLOW_RUN, artifact_path=MLFLOW_MODEL_PATH, dst_path=LAMBDA_TMP)
+    print('Downloaded model files:\n', os.listdir(mlflow_files))
+    # mlflow_files=mlflow.artifacts.list_artifacts(tracking_uri=MLFLOW_SERVER, run_id=MLFLOW_RUN, artifact_path=MLFLOW_MODEL_PATH)
