@@ -1,4 +1,5 @@
 import os
+import time
 # import mlflow
 # import boto3
 
@@ -17,23 +18,39 @@ import json
 LAMBDA_TMP = '/tmp/'
 PREDICT_PATH = '/predict'
 INFO_PATH = '/info'
+LOADED_MODEL = None
 
-def predict(articles):
-    # Run inference with optimized ONNX model and ONNX RunTime pipeline:
-    # It uses 3.3 GB CPU memory, and 480 MB space (for artifacts)
+def init_model():
+    global LOADED_MODEL
+    # Pre-load model during Lambda init, so it doesn't have to be loaded for each inference.
     onnx_dir = os.path.join(EFS_ACCESS_POINT, MLFLOW_MODEL_PATH)
-    optimized_model = ORTModelForSequenceClassification.from_pretrained(os.path.abspath(onnx_dir))#, file_name="model_optimized.onnx", from_transformers=True)
-    ort_pipe = pipeline("text-classification", model=optimized_model, accelerator="ort")
+    print(f'Loading Huggingface model from {onnx_dir}')
+    start_loading = time.monotonic()
+    LOADED_MODEL = ORTModelForSequenceClassification.from_pretrained(os.path.abspath(onnx_dir))#, file_name="model_optimized.onnx", from_transformers=True)
+    model_load_time = time.monotonic()
+    print(f'Huggingface Optimum model loaded in {model_load_time} seconds')
+
+
+##### Model only needs to be loaded once (not for each prediction)
+init_model()
+
+
+# Run inference with optimized ONNX model and ONNX RunTime pipeline
+# It uses 3.3 GB CPU memory, and 480 MB space (for artifacts)
+def predict(articles):
+    ort_pipe = pipeline("text-classification", model=LOADED_MODEL, accelerator="ort")
     return ort_pipe(articles)
 
 def lambda_handler(event, context):
-    print(event)
+    # print(event)
     action = event['rawPath'] # API Gateway uses different JSON
 
     if action == PREDICT_PATH:
         decodedEvent = json.loads(event['body']) # API Gateway uses different JSON
         articles = decodedEvent['Text']
         print(articles)
+        if LOADED_MODEL is None:
+            init_model()
         results = predict(articles)
         print('Model output:', results)
         return results

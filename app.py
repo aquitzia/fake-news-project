@@ -50,7 +50,7 @@ if st.button('Detect'):
                 label = pred['label']
                 score = pred['score']
                 '**Label:**', label
-                f'**Score:** {score:14%}'
+                f'**Score:** {score:.2%}'
                 f"Total: {lambda_runtime:.2f} seconds to send and receive the request from AWS Lambda"
                 st.caption('*The model was fine-tuned on a training set of only 5,000 articles (about 10 MB). It also has a limited vocabulary size of 50,000 of the most common words. RoBERTa models have a maximum input size of 512 byte-pair encodings (bpe), which is about 300-400 words. The tokenizer will truncate articles that are too long for the model. RoBERTA has 125 million parameters.\n\nFor comparison, GPT-3 has 175 billion parameters, with a context (maximum input) of 2048 tokens. The model\'s parameters, alone, require 350GB of space, so no single GPU currently has enough memory to load the full model. GPT-4 has 100 trillion parameters!')
 
